@@ -56,7 +56,7 @@ function FitBounds({ layers }: { layers: LayerData }) {
 function renderPopupContent(properties: Record<string, unknown>, layerType: LayerType) {
   const config = layerConfig[layerType]
   
-  if (layerType === "overture" || layerType === "pegasus") {
+  if (layerType === "overture") {
     return (
       <div className="min-w-[200px]">
         <div
@@ -73,6 +73,29 @@ function renderPopupContent(properties: Record<string, unknown>, layerType: Laye
             Confidence: {((properties.confidence as number) * 100).toFixed(0)}%
           </p>
         )}
+      </div>
+    )
+  }
+
+  if (layerType === "pegasus") {
+    const textGraphics = properties.text_graphics as string
+    const time = properties.time as string
+    const frame = properties.frame as number
+    return (
+      <div className="min-w-[200px]">
+        <div
+          className="mb-2 inline-block rounded px-2 py-0.5 text-xs font-medium text-white"
+          style={{ backgroundColor: config.color }}
+        >
+          {config.label}
+        </div>
+        {textGraphics ? (
+          <h3 className="font-semibold text-gray-900">{textGraphics}</h3>
+        ) : (
+          <p className="text-sm text-gray-500 italic">No text detected</p>
+        )}
+        <p className="mt-1 text-xs text-gray-500">Frame: {frame}</p>
+        {time && <p className="text-xs text-gray-400">{new Date(time).toLocaleString()}</p>}
       </div>
     )
   }
@@ -110,13 +133,14 @@ export function MapView({ layers, visibleLayers, className }: MapViewProps) {
 
     const config = layerConfig[layerType]
 
-    return geoJson.features.map((feature) => {
+    return geoJson.features.map((feature, index) => {
       const [lng, lat] = feature.geometry.coordinates
       const properties = feature.properties as Record<string, unknown>
+      const key = (properties.id as string) || `${layerType}-${index}`
 
       return (
         <CircleMarker
-          key={properties.id as string}
+          key={key}
           center={[lat, lng]}
           radius={layerType === "positive" || layerType === "negative" ? 8 : 10}
           fillColor={config.color}

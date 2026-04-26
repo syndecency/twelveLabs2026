@@ -1,18 +1,17 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
+import type { FeatureCollection, Point } from "geojson"
 import { LayerControls } from "@/components/layer-controls"
 import { InsightsPanel } from "@/components/insights-panel"
 import { CorridorSummaryHeader } from "@/components/corridor-summary"
 import { BusinessComparisonTable } from "@/components/business-comparison-table"
 import {
   overtureBusinesses,
-  pegasusBusinesses,
   positiveIndicators,
   negativeIndicators,
   overtureToGeoJson,
-  pegasusToGeoJson,
   positiveToGeoJson,
   negativeToGeoJson,
   calculateSummary,
@@ -40,16 +39,28 @@ export default function OutputPage() {
     negative: true,
   })
 
+  const [videoAnalysisData, setVideoAnalysisData] = useState<FeatureCollection<Point> | null>(null)
+
+  useEffect(() => {
+    fetch("/data/video-analysis.json")
+      .then((res) => res.json())
+      .then((data) => setVideoAnalysisData(data))
+      .catch((err) => console.error("Failed to load video analysis data:", err))
+  }, [])
+
+  // Use static file for pegasus layer, mock data for others
+  const emptyGeoJson: FeatureCollection<Point> = { type: "FeatureCollection", features: [] }
+  
   const layers = {
     overture: overtureToGeoJson(overtureBusinesses),
-    pegasus: pegasusToGeoJson(pegasusBusinesses),
+    pegasus: videoAnalysisData || emptyGeoJson,
     positive: positiveToGeoJson(positiveIndicators),
     negative: negativeToGeoJson(negativeIndicators),
   }
 
   const counts: Record<LayerType, number> = {
     overture: overtureBusinesses.length,
-    pegasus: pegasusBusinesses.length,
+    pegasus: videoAnalysisData?.features.length || 0,
     positive: positiveIndicators.length,
     negative: negativeIndicators.length,
   }
