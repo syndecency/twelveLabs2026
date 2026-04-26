@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap, Polygon as LeafletPolygon } from "react-leaflet"
+import type { Popup as LeafletPopupType } from "leaflet"
 import type { FeatureCollection, Point, Polygon, Geometry } from "geojson"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
@@ -24,7 +25,51 @@ interface LayerData {
 interface MapViewProps {
   layers: LayerData
   visibleLayers: Record<LayerType, boolean>
+  selectedPegasusName?: string | null
+  onMarkerClose?: () => void
   className?: string
+}
+
+interface OpenSelectedPopupProps {
+  layers: LayerData
+  selectedPegasusName: string | null
+}
+
+function OpenSelectedPopup({ layers, selectedPegasusName }: OpenSelectedPopupProps) {
+  const map = useMap()
+
+  useEffect(() => {
+    if (!selectedPegasusName) return
+
+    // Find the matching feature in pegasus layer
+    const matchingFeature = layers.pegasus.features.find((feature) => {
+      const textGraphics = (feature.properties as Record<string, unknown>)?.text_graphics as string
+      if (!textGraphics) return false
+      // Match if the text contains the selected name (case insensitive, partial match)
+      return textGraphics.toLowerCase().includes(selectedPegasusName.toLowerCase()) ||
+             selectedPegasusName.toLowerCase().includes(textGraphics.toLowerCase())
+    })
+
+    if (matchingFeature) {
+      const [lng, lat] = matchingFeature.geometry.coordinates
+      map.setView([lat, lng], 17, { animate: true })
+      
+      // Open popup after panning
+      setTimeout(() => {
+        map.eachLayer((layer) => {
+          if ('getLatLng' in layer) {
+            const markerLayer = layer as L.CircleMarker
+            const markerLatLng = markerLayer.getLatLng()
+            if (Math.abs(markerLatLng.lat - lat) < 0.0001 && Math.abs(markerLatLng.lng - lng) < 0.0001) {
+              markerLayer.openPopup()
+            }
+          }
+        })
+      }, 300)
+    }
+  }, [selectedPegasusName, layers.pegasus.features, map])
+
+  return null
 }
 
 function FitBounds({ layers }: { layers: LayerData }) {
@@ -157,7 +202,8 @@ function renderPopupContent(properties: Record<string, unknown>, layerType: Laye
   )
 }
 
-export function MapView({ layers, visibleLayers, className }: MapViewProps) {
+export function MapView({ layers, visibleLayers, selectedPegasusName, onMarkerClose, className }: MapViewProps) {
+  const popupRefs = useRef<Map<string, L.Popup>>(new Map())
   // Specific addresses and business names to exclude
   const excludedAddresses = [
     "1101 lucas",
@@ -318,6 +364,9 @@ export function MapView({ layers, visibleLayers, className }: MapViewProps) {
         {renderPointLayer(layers.positive, "positive", visibleLayers.positive)}
         {renderPointLayer(layers.negative, "negative", visibleLayers.negative)}
         <FitBounds layers={layers} />
+        {selectedPegasusName && (
+          <OpenSelectedPopup layers={layers} selectedPegasusName={selectedPegasusName} />
+        )}
       </MapContainer>
     </div>
   )

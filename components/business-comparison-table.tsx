@@ -22,6 +22,7 @@ interface ComparisonRow {
 
 interface BusinessComparisonTableProps {
   data: ComparisonRow[]
+  onRowClick?: (pegasusName: string | null) => void
   className?: string
 }
 
@@ -40,7 +41,7 @@ function getStatusBadge(status: ComparisonRow["status"]) {
 
 
 
-export function BusinessComparisonTable({ data, className }: BusinessComparisonTableProps) {
+export function BusinessComparisonTable({ data, onRowClick, className }: BusinessComparisonTableProps) {
   return (
     <div className={cn("rounded-lg border border-border bg-card", className)}>
       <div className="border-b border-border px-4 py-3">
@@ -58,7 +59,14 @@ export function BusinessComparisonTable({ data, className }: BusinessComparisonT
           </TableHeader>
           <TableBody>
             {data.map((row) => (
-              <TableRow key={row.id} className="border-border">
+              <TableRow 
+                key={row.id} 
+                className={cn(
+                  "border-border",
+                  row.pegasusName && "cursor-pointer hover:bg-muted/50"
+                )}
+                onClick={() => row.pegasusName && onRowClick?.(row.pegasusName)}
+              >
                 <TableCell className="font-medium text-foreground">
                   {row.pegasusName || <span className="text-muted-foreground italic">Not detected</span>}
                 </TableCell>
