@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import type { FeatureCollection, Point, Polygon } from "geojson"
 import { LayerControls } from "@/components/layer-controls"
+import { InsightsPanel } from "@/components/insights-panel"
 import { CorridorSummaryHeader } from "@/components/corridor-summary"
 import { BusinessComparisonTable } from "@/components/business-comparison-table"
 import {
@@ -114,6 +115,7 @@ export default function OutputPage() {
         {/* Right Side - Insights & Table (50%) */}
         <aside className="flex w-full flex-col border-t border-border bg-muted/30 p-4 lg:w-1/2 lg:border-l lg:border-t-0 lg:p-6">
           <CorridorSummaryHeader summary={summary} />
+          <InsightsPanel summary={summary} className="mt-4" />
           <BusinessComparisonTable 
             data={comparisonData} 
             onRowClick={(pegasusName) => setSelectedPegasusName(pegasusName)}
