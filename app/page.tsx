@@ -146,7 +146,7 @@ export default function InputPage() {
         {/* Elevator pitch */}
         <div className="mt-12 rounded-lg border border-border bg-card p-6 text-center">
           <p className="text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-            <span className="text-foreground font-medium">BlockSight</span> surfaces real-time signals of commercial district change so you can
+            <span className="text-foreground font-medium">BlockSight</span>  surfaces real-time signals of commercial district change so you can
             see where a neighborhood is going before the data says it&apos;s already there.
           </p>
         </div>
