@@ -17,35 +17,33 @@ interface ComparisonRow {
   overtureName: string | null
   address: string
   confidence: number | null
-  status: "match" | "new" | "closed" | "mismatch"
+  status: "match" | "new" | "closed" | "mismatch" | "empty"
 }
 
 interface BusinessComparisonTableProps {
   data: ComparisonRow[]
+  onRowClick?: (pegasusName: string | null) => void
   className?: string
 }
 
 function getStatusBadge(status: ComparisonRow["status"]) {
   switch (status) {
     case "match":
-      return <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600">Match</Badge>
+      return <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600">Likely Match</Badge>
     case "new":
-      return <Badge variant="outline" className="border-cyan-500/30 bg-cyan-500/10 text-cyan-600">New</Badge>
+      return <Badge variant="outline" className="border-cyan-500/30 bg-cyan-500/10 text-cyan-600">Likely New Business</Badge>
     case "closed":
-      return <Badge variant="outline" className="border-red-500/30 bg-red-500/10 text-red-600">Closed</Badge>
+      return <Badge variant="outline" className="border-red-500/30 bg-red-500/10 text-red-600">Store Closed</Badge>
     case "mismatch":
-      return <Badge variant="outline" className="border-amber-500/30 bg-amber-500/10 text-amber-600">Changed</Badge>
+      return <Badge variant="outline" className="border-amber-500/30 bg-amber-500/10 text-amber-600">Data Mismatch</Badge>
+    case "empty":
+      return <Badge variant="outline" className="border-gray-500/30 bg-gray-500/10 text-gray-600">Empty Space</Badge>
   }
 }
 
-function getConfidenceColor(confidence: number | null) {
-  if (confidence === null) return "text-muted-foreground"
-  if (confidence >= 0.9) return "text-emerald-600"
-  if (confidence >= 0.8) return "text-amber-600"
-  return "text-red-600"
-}
 
-export function BusinessComparisonTable({ data, className }: BusinessComparisonTableProps) {
+
+export function BusinessComparisonTable({ data, onRowClick, className }: BusinessComparisonTableProps) {
   return (
     <div className={cn("rounded-lg border border-border bg-card", className)}>
       <div className="border-b border-border px-4 py-3">
@@ -58,27 +56,24 @@ export function BusinessComparisonTable({ data, className }: BusinessComparisonT
             <TableRow className="border-border hover:bg-transparent">
               <TableHead className="text-muted-foreground">Video (Pegasus)</TableHead>
               <TableHead className="text-muted-foreground">Registry (Overture)</TableHead>
-              <TableHead className="text-center text-muted-foreground">Confidence</TableHead>
               <TableHead className="text-center text-muted-foreground">Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.map((row) => (
-              <TableRow key={row.id} className="border-border">
+              <TableRow 
+                key={row.id} 
+                className={cn(
+                  "border-border",
+                  row.pegasusName && "cursor-pointer hover:bg-muted/50"
+                )}
+                onClick={() => row.pegasusName && onRowClick?.(row.pegasusName)}
+              >
                 <TableCell className="font-medium text-foreground">
                   {row.pegasusName || <span className="text-muted-foreground italic">Not detected</span>}
                 </TableCell>
                 <TableCell className="text-foreground">
                   {row.overtureName || <span className="text-muted-foreground italic">Not in registry</span>}
-                </TableCell>
-                <TableCell className="text-center">
-                  {row.confidence !== null ? (
-                    <span className={cn("font-medium", getConfidenceColor(row.confidence))}>
-                      {Math.round(row.confidence * 100)}%
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
                 </TableCell>
                 <TableCell className="text-center">
                   {getStatusBadge(row.status)}

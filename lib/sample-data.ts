@@ -184,60 +184,27 @@ export interface BusinessComparisonRow {
   overtureName: string | null
   address: string
   confidence: number | null
-  status: "match" | "new" | "closed" | "mismatch"
+  status: "match" | "new" | "closed" | "mismatch" | "empty"
 }
 
-// Generate comparison data by matching Pegasus and Overture records
+// Manual comparison data
 export function generateComparisonData(): BusinessComparisonRow[] {
-  const comparison: BusinessComparisonRow[] = []
-  const matchedOvertureIds = new Set<string>()
-
-  // First, try to match Pegasus businesses to Overture
-  pegasusBusinesses.forEach((pegasus) => {
-    // Look for a matching Overture business by address
-    const overtureMatch = overtureBusinesses.find(
-      (ov) => ov.address === pegasus.address
-    )
-
-    if (overtureMatch) {
-      matchedOvertureIds.add(overtureMatch.id)
-      const isExactMatch = pegasus.name.toLowerCase() === overtureMatch.name.toLowerCase()
-      comparison.push({
-        id: `cmp-${pegasus.id}`,
-        pegasusName: pegasus.name,
-        overtureName: overtureMatch.name,
-        address: pegasus.address,
-        confidence: pegasus.confidence,
-        status: isExactMatch ? "match" : "mismatch",
-      })
-    } else {
-      // New business detected in video but not in registry
-      comparison.push({
-        id: `cmp-${pegasus.id}`,
-        pegasusName: pegasus.name,
-        overtureName: null,
-        address: pegasus.address,
-        confidence: pegasus.confidence,
-        status: "new",
-      })
-    }
-  })
-
-  // Add Overture businesses that weren't matched (closed/missing from video)
-  overtureBusinesses.forEach((overture) => {
-    if (!matchedOvertureIds.has(overture.id)) {
-      comparison.push({
-        id: `cmp-${overture.id}`,
-        pegasusName: null,
-        overtureName: overture.name,
-        address: overture.address,
-        confidence: null,
-        status: "closed",
-      })
-    }
-  })
-
-  return comparison
+  return [
+    { id: "cmp-001", pegasusName: null, overtureName: "City Museum & Washington Avenue Parking St Louis", address: "", confidence: null, status: "mismatch" },
+    { id: "cmp-002", pegasusName: null, overtureName: "Levels Nigerian Cuisine", address: "", confidence: null, status: "mismatch" },
+    { id: "cmp-003", pegasusName: "Buddy", overtureName: "Buddy's Local Grill & Bar", address: "", confidence: null, status: "match" },
+    { id: "cmp-004", pegasusName: "window washington", overtureName: "Windows On Washington", address: "", confidence: null, status: "match" },
+    { id: "cmp-005", pegasusName: "Boost Mobile", overtureName: "Boost Mobile", address: "", confidence: null, status: "match" },
+    { id: "cmp-006", pegasusName: "Flamingo Bowl", overtureName: "Flamingo Bowl", address: "", confidence: null, status: "match" },
+    { id: "cmp-007", pegasusName: "Levin's", overtureName: "Levin's", address: "", confidence: null, status: "match" },
+    { id: "cmp-008", pegasusName: "World", overtureName: "iWorld Everything Wireless", address: "", confidence: null, status: "match" },
+    { id: "cmp-009", pegasusName: "Washington", overtureName: "Blades On Washington", address: "", confidence: null, status: "match" },
+    { id: "cmp-010", pegasusName: "For Lease", overtureName: null, address: "", confidence: null, status: "empty" },
+    { id: "cmp-011", pegasusName: "Escape Room", overtureName: "Escape The Room St Louis", address: "", confidence: null, status: "match" },
+    { id: "cmp-012", pegasusName: "Rosies", overtureName: "Rosalita's Mexican Restaurant", address: "", confidence: null, status: "match" },
+    { id: "cmp-013", pegasusName: "ReMax", overtureName: null, address: "", confidence: null, status: "new" },
+    { id: "cmp-014", pegasusName: null, overtureName: "Imo's Pizza", address: "", confidence: null, status: "mismatch" },
+  ]
 }
 
 // Summary for the corridor analysis

@@ -33,12 +33,13 @@ export default function OutputPage() {
   const [visibleLayers, setVisibleLayers] = useState<Record<LayerType, boolean>>({
     overture: true,
     pegasus: true,
-    positive: true,
-    negative: true,
+    positive: false,
+    negative: false,
   })
 
   const [videoAnalysisData, setVideoAnalysisData] = useState<FeatureCollection<Point> | null>(null)
   const [overtureData, setOvertureData] = useState<FeatureCollection<Polygon> | null>(null)
+  const [selectedPegasusName, setSelectedPegasusName] = useState<string | null>(null)
 
   useEffect(() => {
     fetch("/data/video-analysis.json")
@@ -105,6 +106,8 @@ export default function OutputPage() {
           <MapView
             layers={layers}
             visibleLayers={visibleLayers}
+            selectedPegasusName={selectedPegasusName}
+            onMarkerClose={() => setSelectedPegasusName(null)}
             className="mt-4 h-[400px] flex-1 lg:h-auto"
           />
         </section>
@@ -113,7 +116,11 @@ export default function OutputPage() {
         <aside className="flex w-full flex-col border-t border-border bg-muted/30 p-4 lg:w-1/2 lg:border-l lg:border-t-0 lg:p-6">
           <CorridorSummaryHeader summary={summary} />
           <InsightsPanel summary={summary} className="mt-4" />
-          <BusinessComparisonTable data={comparisonData} className="mt-4 flex-1" />
+          <BusinessComparisonTable 
+            data={comparisonData} 
+            onRowClick={(pegasusName) => setSelectedPegasusName(pegasusName)}
+            className="mt-4 flex-1" 
+          />
         </aside>
       </main>
     </div>

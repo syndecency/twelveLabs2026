@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap, Polygon as LeafletPolygon } from "react-leaflet"
+import type { Popup as LeafletPopupType } from "leaflet"
 import type { FeatureCollection, Point, Polygon, Geometry } from "geojson"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
@@ -24,7 +25,51 @@ interface LayerData {
 interface MapViewProps {
   layers: LayerData
   visibleLayers: Record<LayerType, boolean>
+  selectedPegasusName?: string | null
+  onMarkerClose?: () => void
   className?: string
+}
+
+interface OpenSelectedPopupProps {
+  layers: LayerData
+  selectedPegasusName: string | null
+}
+
+function OpenSelectedPopup({ layers, selectedPegasusName }: OpenSelectedPopupProps) {
+  const map = useMap()
+
+  useEffect(() => {
+    if (!selectedPegasusName) return
+
+    // Find the matching feature in pegasus layer
+    const matchingFeature = layers.pegasus.features.find((feature) => {
+      const textGraphics = (feature.properties as Record<string, unknown>)?.text_graphics as string
+      if (!textGraphics) return false
+      // Match if the text contains the selected name (case insensitive, partial match)
+      return textGraphics.toLowerCase().includes(selectedPegasusName.toLowerCase()) ||
+             selectedPegasusName.toLowerCase().includes(textGraphics.toLowerCase())
+    })
+
+    if (matchingFeature) {
+      const [lng, lat] = matchingFeature.geometry.coordinates
+      map.setView([lat, lng], 17, { animate: true })
+      
+      // Open popup after panning
+      setTimeout(() => {
+        map.eachLayer((layer) => {
+          if ('getLatLng' in layer) {
+            const markerLayer = layer as L.CircleMarker
+            const markerLatLng = markerLayer.getLatLng()
+            if (Math.abs(markerLatLng.lat - lat) < 0.0001 && Math.abs(markerLatLng.lng - lng) < 0.0001) {
+              markerLayer.openPopup()
+            }
+          }
+        })
+      }, 300)
+    }
+  }, [selectedPegasusName, layers.pegasus.features, map])
+
+  return null
 }
 
 function FitBounds({ layers }: { layers: LayerData }) {
@@ -104,8 +149,19 @@ function renderPopupContent(properties: Record<string, unknown>, layerType: Laye
     const textGraphics = properties.text_graphics as string
     const time = properties.time as string
     const frame = properties.frame as number
+    const thumbnailSrc = `/images/frame-${frame}.jpg`
+    
     return (
       <div className="min-w-[200px]">
+        <img 
+          src={thumbnailSrc} 
+          alt={`Frame ${frame}`}
+          className="mb-2 w-full rounded object-cover"
+          style={{ maxHeight: "120px" }}
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = "none"
+          }}
+        />
         <div
           className="mb-2 inline-block rounded px-2 py-0.5 text-xs font-medium text-white"
           style={{ backgroundColor: config.color }}
@@ -146,7 +202,69 @@ function renderPopupContent(properties: Record<string, unknown>, layerType: Laye
   )
 }
 
-export function MapView({ layers, visibleLayers, className }: MapViewProps) {
+export function MapView({ layers, visibleLayers, selectedPegasusName, onMarkerClose, className }: MapViewProps) {
+  const popupRefs = useRef<Map<string, L.Popup>>(new Map())
+  // Specific addresses and business names to exclude
+  const excludedAddresses = [
+    "1101 lucas",
+    "1101 washington",
+    "1221 locust",
+    "911 washington",
+  ]
+  const excludedNames = ["sunsation", "adalo"]
+
+  // Helper to extract address string
+  const getAddress = (properties: Record<string, unknown>): string => {
+    const addresses = properties.addresses as Array<{ freeform?: string }> | null
+    if (addresses && addresses.length > 0 && addresses[0].freeform) {
+      return addresses[0].freeform.toLowerCase()
+    }
+    return ""
+  }
+
+  // Helper to extract business name
+  const getBusinessName = (properties: Record<string, unknown>): string => {
+    try {
+      const namesStr = properties.names as string
+      if (namesStr) {
+        const match = namesStr.match(/'primary':\s*'([^']*)'/)
+        if (match) return match[1].toLowerCase()
+      }
+    } catch {
+      // Keep empty
+    }
+    return ""
+  }
+
+  // Helper to extract street number from address
+  const getStreetNumber = (address: string): number | null => {
+    const match = address.match(/^(\d+)/)
+    if (match) return parseInt(match[1], 10)
+    return null
+  }
+
+  // Check if feature should be excluded
+  const shouldExclude = (properties: Record<string, unknown>): boolean => {
+    const address = getAddress(properties)
+    const name = getBusinessName(properties)
+    
+    // Filter out addresses 1100 and lower
+    const streetNum = getStreetNumber(address)
+    if (streetNum !== null && streetNum <= 1100) return true
+    
+    // Check excluded addresses (partial match)
+    for (const excl of excludedAddresses) {
+      if (address.includes(excl)) return true
+    }
+    
+    // Check excluded names (partial match)
+    for (const excl of excludedNames) {
+      if (name.includes(excl)) return true
+    }
+    
+    return false
+  }
+
   // Render polygon layer (Overture)
   const renderPolygonLayer = (
     geoJson: FeatureCollection<Polygon>,
@@ -157,7 +275,14 @@ export function MapView({ layers, visibleLayers, className }: MapViewProps) {
 
     const config = layerConfig[layerType]
 
-    return geoJson.features.map((feature, index) => {
+    // Filter out specific addresses and names for overture layer
+    const filteredFeatures = layerType === "overture"
+      ? geoJson.features.filter((feature) => {
+          return !shouldExclude(feature.properties as Record<string, unknown>)
+        })
+      : geoJson.features
+
+    return filteredFeatures.map((feature, index) => {
       const properties = feature.properties as Record<string, unknown>
       const key = (properties.id as string) || `${layerType}-${index}`
       
@@ -192,7 +317,15 @@ export function MapView({ layers, visibleLayers, className }: MapViewProps) {
 
     const config = layerConfig[layerType]
 
-    return geoJson.features.map((feature, index) => {
+    // Filter out pegasus features with no text detected
+    const filteredFeatures = layerType === "pegasus"
+      ? geoJson.features.filter((feature) => {
+          const textGraphics = (feature.properties as Record<string, unknown>)?.text_graphics
+          return textGraphics && String(textGraphics).trim() !== ""
+        })
+      : geoJson.features
+
+    return filteredFeatures.map((feature, index) => {
       const [lng, lat] = feature.geometry.coordinates
       const properties = feature.properties as Record<string, unknown>
       const key = (properties.id as string) || `${layerType}-${index}`
@@ -231,6 +364,9 @@ export function MapView({ layers, visibleLayers, className }: MapViewProps) {
         {renderPointLayer(layers.positive, "positive", visibleLayers.positive)}
         {renderPointLayer(layers.negative, "negative", visibleLayers.negative)}
         <FitBounds layers={layers} />
+        {selectedPegasusName && (
+          <OpenSelectedPopup layers={layers} selectedPegasusName={selectedPegasusName} />
+        )}
       </MapContainer>
     </div>
   )
