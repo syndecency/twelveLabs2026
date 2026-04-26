@@ -149,13 +149,16 @@ function renderPopupContent(properties: Record<string, unknown>, layerType: Laye
     const textGraphics = properties.text_graphics as string
     const time = properties.time as string
     const frame = properties.frame as number
-    const thumbnailSrc = `/images/frame-${frame}.jpg`
+    
+    // Use specific image for Levin's, otherwise use frame-based thumbnail
+    const isLevins = textGraphics && textGraphics.toLowerCase().includes("levin")
+    const thumbnailSrc = isLevins ? "/images/levins.png" : `/images/frame-${frame}.jpg`
     
     return (
       <div className="min-w-[200px]">
         <img 
           src={thumbnailSrc} 
-          alt={`Frame ${frame}`}
+          alt={isLevins ? "Levin's storefront" : `Frame ${frame}`}
           className="mb-2 w-full rounded object-cover"
           style={{ maxHeight: "120px" }}
           onError={(e) => {
