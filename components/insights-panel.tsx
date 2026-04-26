@@ -27,7 +27,7 @@ export function InsightsPanel({ summary, className }: InsightsPanelProps) {
             <TrendingDown className="h-4 w-4 text-red-600" />
             <span className="text-xs text-muted-foreground">Boarded Windows</span>
           </div>
-          <p className="mt-1 text-xl font-semibold text-muted-foreground italic">
+          <p className="mt-1 text-sm text-muted-foreground/60 italic">
             coming soon
           </p>
         </div>
@@ -37,7 +37,7 @@ export function InsightsPanel({ summary, className }: InsightsPanelProps) {
             <TrendingUp className="h-4 w-4 text-emerald-600" />
             <span className="text-xs text-muted-foreground">Now Opening Sign</span>
           </div>
-          <p className="mt-1 text-xl font-semibold text-muted-foreground italic">
+          <p className="mt-1 text-sm text-muted-foreground/60 italic">
             coming soon
           </p>
         </div>
@@ -47,7 +47,7 @@ export function InsightsPanel({ summary, className }: InsightsPanelProps) {
             <Building2 className="h-4 w-4 text-emerald-600" />
             <span className="text-xs text-muted-foreground">New Construction</span>
           </div>
-          <p className="mt-1 text-xl font-semibold text-muted-foreground italic">
+          <p className="mt-1 text-sm text-muted-foreground/60 italic">
             coming soon
           </p>
         </div>
