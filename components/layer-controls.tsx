@@ -10,7 +10,7 @@ interface LayerControlsProps {
 }
 
 export function LayerControls({ visibleLayers, onToggle, counts }: LayerControlsProps) {
-  const layers: LayerType[] = ["overture", "pegasus", "positive", "negative"]
+  const layers: LayerType[] = ["overture", "pegasus"]
 
   return (
     <div className="rounded-lg border border-border bg-card p-4">

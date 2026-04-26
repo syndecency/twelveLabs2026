@@ -33,8 +33,8 @@ export default function OutputPage() {
   const [visibleLayers, setVisibleLayers] = useState<Record<LayerType, boolean>>({
     overture: true,
     pegasus: true,
-    positive: true,
-    negative: true,
+    positive: false,
+    negative: false,
   })
 
   const [videoAnalysisData, setVideoAnalysisData] = useState<FeatureCollection<Point> | null>(null)
