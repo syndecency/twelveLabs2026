@@ -158,14 +158,54 @@ function renderPopupContent(properties: Record<string, unknown>, layerType: Laye
 }
 
 export function MapView({ layers, visibleLayers, className }: MapViewProps) {
-  // Helper to extract street number from address
-  const getStreetNumber = (properties: Record<string, unknown>): number | null => {
+  // Specific addresses and business names to exclude
+  const excludedAddresses = [
+    "1101 lucas",
+    "1101 washington",
+    "1221 locust",
+    "911 washington",
+  ]
+  const excludedNames = ["sunsation", "adalo"]
+
+  // Helper to extract address string
+  const getAddress = (properties: Record<string, unknown>): string => {
     const addresses = properties.addresses as Array<{ freeform?: string }> | null
     if (addresses && addresses.length > 0 && addresses[0].freeform) {
-      const match = addresses[0].freeform.match(/^(\d+)/)
-      if (match) return parseInt(match[1], 10)
+      return addresses[0].freeform.toLowerCase()
     }
-    return null
+    return ""
+  }
+
+  // Helper to extract business name
+  const getBusinessName = (properties: Record<string, unknown>): string => {
+    try {
+      const namesStr = properties.names as string
+      if (namesStr) {
+        const match = namesStr.match(/'primary':\s*'([^']*)'/)
+        if (match) return match[1].toLowerCase()
+      }
+    } catch {
+      // Keep empty
+    }
+    return ""
+  }
+
+  // Check if feature should be excluded
+  const shouldExclude = (properties: Record<string, unknown>): boolean => {
+    const address = getAddress(properties)
+    const name = getBusinessName(properties)
+    
+    // Check excluded addresses (partial match)
+    for (const excl of excludedAddresses) {
+      if (address.includes(excl)) return true
+    }
+    
+    // Check excluded names (partial match)
+    for (const excl of excludedNames) {
+      if (name.includes(excl)) return true
+    }
+    
+    return false
   }
 
   // Render polygon layer (Overture)
@@ -178,11 +218,10 @@ export function MapView({ layers, visibleLayers, className }: MapViewProps) {
 
     const config = layerConfig[layerType]
 
-    // Filter out addresses 1100 and lower for overture layer
+    // Filter out specific addresses and names for overture layer
     const filteredFeatures = layerType === "overture"
       ? geoJson.features.filter((feature) => {
-          const streetNum = getStreetNumber(feature.properties as Record<string, unknown>)
-          return streetNum === null || streetNum > 1100
+          return !shouldExclude(feature.properties as Record<string, unknown>)
         })
       : geoJson.features
 
