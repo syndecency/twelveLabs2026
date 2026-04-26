@@ -38,12 +38,7 @@ function getStatusBadge(status: ComparisonRow["status"]) {
   }
 }
 
-function getConfidenceColor(confidence: number | null) {
-  if (confidence === null) return "text-muted-foreground"
-  if (confidence >= 0.9) return "text-emerald-600"
-  if (confidence >= 0.8) return "text-amber-600"
-  return "text-red-600"
-}
+
 
 export function BusinessComparisonTable({ data, className }: BusinessComparisonTableProps) {
   return (
@@ -58,7 +53,6 @@ export function BusinessComparisonTable({ data, className }: BusinessComparisonT
             <TableRow className="border-border hover:bg-transparent">
               <TableHead className="text-muted-foreground">Video (Pegasus)</TableHead>
               <TableHead className="text-muted-foreground">Registry (Overture)</TableHead>
-              <TableHead className="text-center text-muted-foreground">Confidence</TableHead>
               <TableHead className="text-center text-muted-foreground">Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -70,15 +64,6 @@ export function BusinessComparisonTable({ data, className }: BusinessComparisonT
                 </TableCell>
                 <TableCell className="text-foreground">
                   {row.overtureName || <span className="text-muted-foreground italic">Not in registry</span>}
-                </TableCell>
-                <TableCell className="text-center">
-                  {row.confidence !== null ? (
-                    <span className={cn("font-medium", getConfidenceColor(row.confidence))}>
-                      {Math.round(row.confidence * 100)}%
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
                 </TableCell>
                 <TableCell className="text-center">
                   {getStatusBadge(row.status)}
