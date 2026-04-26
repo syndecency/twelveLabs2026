@@ -191,7 +191,7 @@ export interface BusinessComparisonRow {
 export function generateComparisonData(): BusinessComparisonRow[] {
   return [
     { id: "cmp-001", pegasusName: null, overtureName: "City Museum & Washington Avenue Parking St Louis", address: "", confidence: null, status: "mismatch" },
-    { id: "cmp-002", pegasusName: null, overtureName: "Levels Nigerian Cuisine", address: "", confidence: null, status: "closed" },
+    { id: "cmp-002", pegasusName: null, overtureName: "Levels Nigerian Cuisine", address: "", confidence: null, status: "mismatch" },
     { id: "cmp-003", pegasusName: "Buddy", overtureName: "Buddy's Local Grill & Bar", address: "", confidence: null, status: "match" },
     { id: "cmp-004", pegasusName: "window washington", overtureName: "Windows On Washington", address: "", confidence: null, status: "match" },
     { id: "cmp-005", pegasusName: "Boost Mobile", overtureName: "Boost Mobile", address: "", confidence: null, status: "match" },
