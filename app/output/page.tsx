@@ -1,18 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
+import type { FeatureCollection, Point, Polygon } from "geojson"
 import { LayerControls } from "@/components/layer-controls"
 import { InsightsPanel } from "@/components/insights-panel"
 import { CorridorSummaryHeader } from "@/components/corridor-summary"
 import { BusinessComparisonTable } from "@/components/business-comparison-table"
 import {
-  overtureBusinesses,
-  pegasusBusinesses,
   positiveIndicators,
   negativeIndicators,
-  overtureToGeoJson,
-  pegasusToGeoJson,
   positiveToGeoJson,
   negativeToGeoJson,
   calculateSummary,
@@ -40,16 +37,35 @@ export default function OutputPage() {
     negative: true,
   })
 
+  const [videoAnalysisData, setVideoAnalysisData] = useState<FeatureCollection<Point> | null>(null)
+  const [overtureData, setOvertureData] = useState<FeatureCollection<Polygon> | null>(null)
+
+  useEffect(() => {
+    fetch("/data/video-analysis.json")
+      .then((res) => res.json())
+      .then((data) => setVideoAnalysisData(data))
+      .catch((err) => console.error("Failed to load video analysis data:", err))
+
+    fetch("/data/overture.json")
+      .then((res) => res.json())
+      .then((data) => setOvertureData(data))
+      .catch((err) => console.error("Failed to load overture data:", err))
+  }, [])
+
+  // Use static files for overture and pegasus layers
+  const emptyPointGeoJson: FeatureCollection<Point> = { type: "FeatureCollection", features: [] }
+  const emptyPolygonGeoJson: FeatureCollection<Polygon> = { type: "FeatureCollection", features: [] }
+  
   const layers = {
-    overture: overtureToGeoJson(overtureBusinesses),
-    pegasus: pegasusToGeoJson(pegasusBusinesses),
+    overture: overtureData || emptyPolygonGeoJson,
+    pegasus: videoAnalysisData || emptyPointGeoJson,
     positive: positiveToGeoJson(positiveIndicators),
     negative: negativeToGeoJson(negativeIndicators),
   }
 
   const counts: Record<LayerType, number> = {
-    overture: overtureBusinesses.length,
-    pegasus: pegasusBusinesses.length,
+    overture: overtureData?.features.length || 0,
+    pegasus: videoAnalysisData?.features.length || 0,
     positive: positiveIndicators.length,
     negative: negativeIndicators.length,
   }
@@ -67,7 +83,7 @@ export default function OutputPage() {
       <header className="border-b border-border bg-card px-6 py-4">
         <h1 className="text-2xl font-bold tracking-tight text-foreground">BlockSight</h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
-          Commercial Corridor Intelligence
+          Street-level intelligence on commercial corridor momentum
         </p>
       </header>
 
