@@ -151,30 +151,17 @@ function renderPopupContent(properties: Record<string, unknown>, layerType: Laye
     const frame = properties.frame as number
     const thumbnailSrc = `/images/frame-${frame}.jpg`
     
-    // Check if this is Levin's - show video instead of thumbnail
-    const isLevins = textGraphics && textGraphics.toLowerCase().includes("levin")
-    
     return (
       <div className="min-w-[200px]">
-        {isLevins ? (
-          <iframe
-            src="https://drive.google.com/file/d/1oknRozOKszv9MRE5KPfcC5EopwbcA_ga/preview#t=358"
-            className="mb-2 w-full rounded"
-            style={{ height: "150px" }}
-            allow="autoplay"
-            title="Levin's video"
-          />
-        ) : (
-          <img 
-            src={thumbnailSrc} 
-            alt={`Frame ${frame}`}
-            className="mb-2 w-full rounded object-cover"
-            style={{ maxHeight: "120px" }}
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none"
-            }}
-          />
-        )}
+        <img 
+          src={thumbnailSrc} 
+          alt={`Frame ${frame}`}
+          className="mb-2 w-full rounded object-cover"
+          style={{ maxHeight: "120px" }}
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = "none"
+          }}
+        />
         <div
           className="mb-2 inline-block rounded px-2 py-0.5 text-xs font-medium text-white"
           style={{ backgroundColor: config.color }}
