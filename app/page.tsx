@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowRight, Video, Route, BarChart3 } from "lucide-react"
+import { ArrowRight, Video, Route, BarChart3, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -41,12 +41,16 @@ export default function InputPage() {
   const router = useRouter()
   const [videoFile, setVideoFile] = useState<File | null>(null)
   const [gpxFile, setGpxFile] = useState<File | null>(null)
+  const [isGenerating, setIsGenerating] = useState(false)
 
   const canProceed = videoFile && gpxFile
 
   const handleAnalyze = () => {
-    // In production, this would upload files and trigger processing
-    router.push("/output")
+    setIsGenerating(true)
+    // Simulate processing time (15 seconds)
+    setTimeout(() => {
+      router.push("/output")
+    }, 15000)
   }
 
   return (
@@ -128,11 +132,20 @@ export default function InputPage() {
               <Button
                 size="lg"
                 onClick={handleAnalyze}
-                disabled={!canProceed}
+                disabled={!canProceed || isGenerating}
                 className="w-full md:w-auto !bg-black !text-white hover:!bg-black/90"
               >
-                Generate momentum report
-                <ArrowRight className="ml-2 h-4 w-4" />
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating corridor change summary
+                  </>
+                ) : (
+                  <>
+                    Generate momentum report
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
               </Button>
               {!canProceed && (
                 <p className="text-sm text-muted-foreground">
