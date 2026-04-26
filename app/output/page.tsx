@@ -67,7 +67,7 @@ export default function OutputPage() {
       <header className="border-b border-border bg-card px-6 py-4">
         <h1 className="text-2xl font-bold tracking-tight text-foreground">BlockSight</h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
-          Commercial Corridor Intelligence
+          Street-level intelligence on commercial corridor momentum
         </p>
       </header>
 
