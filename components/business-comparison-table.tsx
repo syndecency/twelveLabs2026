@@ -17,7 +17,7 @@ interface ComparisonRow {
   overtureName: string | null
   address: string
   confidence: number | null
-  status: "match" | "new" | "closed" | "mismatch"
+  status: "match" | "new" | "closed" | "mismatch" | "empty"
 }
 
 interface BusinessComparisonTableProps {
@@ -36,6 +36,8 @@ function getStatusBadge(status: ComparisonRow["status"]) {
       return <Badge variant="outline" className="border-red-500/30 bg-red-500/10 text-red-600">Store Closed</Badge>
     case "mismatch":
       return <Badge variant="outline" className="border-amber-500/30 bg-amber-500/10 text-amber-600">Data Mismatch</Badge>
+    case "empty":
+      return <Badge variant="outline" className="border-gray-500/30 bg-gray-500/10 text-gray-600">Empty Space</Badge>
   }
 }
 
