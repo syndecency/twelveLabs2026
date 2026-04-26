@@ -192,7 +192,15 @@ export function MapView({ layers, visibleLayers, className }: MapViewProps) {
 
     const config = layerConfig[layerType]
 
-    return geoJson.features.map((feature, index) => {
+    // Filter out pegasus features with no text detected
+    const filteredFeatures = layerType === "pegasus"
+      ? geoJson.features.filter((feature) => {
+          const textGraphics = (feature.properties as Record<string, unknown>)?.text_graphics
+          return textGraphics && String(textGraphics).trim() !== ""
+        })
+      : geoJson.features
+
+    return filteredFeatures.map((feature, index) => {
       const [lng, lat] = feature.geometry.coordinates
       const properties = feature.properties as Record<string, unknown>
       const key = (properties.id as string) || `${layerType}-${index}`
