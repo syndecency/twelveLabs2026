@@ -104,8 +104,19 @@ function renderPopupContent(properties: Record<string, unknown>, layerType: Laye
     const textGraphics = properties.text_graphics as string
     const time = properties.time as string
     const frame = properties.frame as number
+    const thumbnailSrc = `/images/frame-${frame}.jpg`
+    
     return (
       <div className="min-w-[200px]">
+        <img 
+          src={thumbnailSrc} 
+          alt={`Frame ${frame}`}
+          className="mb-2 w-full rounded object-cover"
+          style={{ maxHeight: "120px" }}
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = "none"
+          }}
+        />
         <div
           className="mb-2 inline-block rounded px-2 py-0.5 text-xs font-medium text-white"
           style={{ backgroundColor: config.color }}
