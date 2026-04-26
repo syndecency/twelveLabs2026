@@ -158,6 +158,16 @@ function renderPopupContent(properties: Record<string, unknown>, layerType: Laye
 }
 
 export function MapView({ layers, visibleLayers, className }: MapViewProps) {
+  // Helper to extract street number from address
+  const getStreetNumber = (properties: Record<string, unknown>): number | null => {
+    const addresses = properties.addresses as Array<{ freeform?: string }> | null
+    if (addresses && addresses.length > 0 && addresses[0].freeform) {
+      const match = addresses[0].freeform.match(/^(\d+)/)
+      if (match) return parseInt(match[1], 10)
+    }
+    return null
+  }
+
   // Render polygon layer (Overture)
   const renderPolygonLayer = (
     geoJson: FeatureCollection<Polygon>,
@@ -168,7 +178,15 @@ export function MapView({ layers, visibleLayers, className }: MapViewProps) {
 
     const config = layerConfig[layerType]
 
-    return geoJson.features.map((feature, index) => {
+    // Filter out addresses 1100 and lower for overture layer
+    const filteredFeatures = layerType === "overture"
+      ? geoJson.features.filter((feature) => {
+          const streetNum = getStreetNumber(feature.properties as Record<string, unknown>)
+          return streetNum === null || streetNum > 1100
+        })
+      : geoJson.features
+
+    return filteredFeatures.map((feature, index) => {
       const properties = feature.properties as Record<string, unknown>
       const key = (properties.id as string) || `${layerType}-${index}`
       
