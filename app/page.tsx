@@ -129,7 +129,7 @@ export default function InputPage() {
                 size="lg"
                 onClick={handleAnalyze}
                 disabled={!canProceed}
-                className="w-full md:w-auto bg-black text-white hover:bg-black/90"
+                className="w-full md:w-auto !bg-black !text-white hover:!bg-black/90"
               >
                 Generate momentum report
                 <ArrowRight className="ml-2 h-4 w-4" />
