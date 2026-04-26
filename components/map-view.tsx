@@ -1,8 +1,8 @@
 "use client"
 
 import { useEffect } from "react"
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from "react-leaflet"
-import type { FeatureCollection, Point } from "geojson"
+import { MapContainer, TileLayer, CircleMarker, Popup, useMap, Polygon as LeafletPolygon } from "react-leaflet"
+import type { FeatureCollection, Point, Polygon, Geometry } from "geojson"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 import {
@@ -15,7 +15,7 @@ import {
 } from "@/lib/sample-data"
 
 interface LayerData {
-  overture: FeatureCollection<Point>
+  overture: FeatureCollection<Polygon>
   pegasus: FeatureCollection<Point>
   positive: FeatureCollection<Point>
   negative: FeatureCollection<Point>
@@ -36,11 +36,11 @@ function FitBounds({ layers }: { layers: LayerData }) {
       ...layers.pegasus.features,
       ...layers.positive.features,
       ...layers.negative.features,
-    ]
+    ] as { type: "Feature"; geometry: Geometry; properties: unknown }[]
 
     if (allFeatures.length > 0) {
-      const combined: FeatureCollection<Point> = {
-        type: "FeatureCollection",
+      const combined = {
+        type: "FeatureCollection" as const,
         features: allFeatures,
       }
       const bounds = L.geoJSON(combined).getBounds()
@@ -57,6 +57,29 @@ function renderPopupContent(properties: Record<string, unknown>, layerType: Laye
   const config = layerConfig[layerType]
   
   if (layerType === "overture") {
+    // Parse the names field which is a stringified object
+    let businessName = "Unknown Business"
+    try {
+      const namesStr = properties.names as string
+      if (namesStr) {
+        const match = namesStr.match(/'primary':\s*'([^']*)'/)
+        if (match) businessName = match[1]
+      }
+    } catch {
+      // Keep default name
+    }
+
+    // Get address from addresses array
+    let address = ""
+    const addresses = properties.addresses as Array<{ freeform?: string; locality?: string; region?: string }> | null
+    if (addresses && addresses.length > 0) {
+      const addr = addresses[0]
+      address = [addr.freeform, addr.locality, addr.region].filter(Boolean).join(", ")
+    }
+
+    // Get category
+    const basicCategory = (properties.basic_category as string)?.replace(/_/g, " ") || ""
+
     return (
       <div className="min-w-[200px]">
         <div
@@ -65,9 +88,9 @@ function renderPopupContent(properties: Record<string, unknown>, layerType: Laye
         >
           {config.label}
         </div>
-        <h3 className="font-semibold text-gray-900">{properties.name as string}</h3>
-        <p className="text-sm text-gray-600">{properties.category as string}</p>
-        <p className="mt-1 text-xs text-gray-500">{properties.address as string}</p>
+        <h3 className="font-semibold text-gray-900">{businessName}</h3>
+        <p className="text-sm text-gray-600 capitalize">{basicCategory}</p>
+        <p className="mt-1 text-xs text-gray-500">{address}</p>
         {properties.confidence && (
           <p className="mt-2 text-xs text-gray-400">
             Confidence: {((properties.confidence as number) * 100).toFixed(0)}%
@@ -124,7 +147,43 @@ function renderPopupContent(properties: Record<string, unknown>, layerType: Laye
 }
 
 export function MapView({ layers, visibleLayers, className }: MapViewProps) {
-  const renderLayer = (
+  // Render polygon layer (Overture)
+  const renderPolygonLayer = (
+    geoJson: FeatureCollection<Polygon>,
+    layerType: LayerType,
+    isVisible: boolean
+  ) => {
+    if (!isVisible) return null
+
+    const config = layerConfig[layerType]
+
+    return geoJson.features.map((feature, index) => {
+      const properties = feature.properties as Record<string, unknown>
+      const key = (properties.id as string) || `${layerType}-${index}`
+      
+      // Convert GeoJSON coordinates to Leaflet format [lat, lng]
+      const positions = feature.geometry.coordinates[0].map(
+        (coord) => [coord[1], coord[0]] as [number, number]
+      )
+
+      return (
+        <LeafletPolygon
+          key={key}
+          positions={positions}
+          fillColor={config.color}
+          color={config.color}
+          weight={2}
+          opacity={0.8}
+          fillOpacity={0.4}
+        >
+          <Popup>{renderPopupContent(properties, layerType)}</Popup>
+        </LeafletPolygon>
+      )
+    })
+  }
+
+  // Render point layer (Pegasus, Positive, Negative)
+  const renderPointLayer = (
     geoJson: FeatureCollection<Point>,
     layerType: LayerType,
     isVisible: boolean
@@ -167,10 +226,10 @@ export function MapView({ layers, visibleLayers, className }: MapViewProps) {
           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
-        {renderLayer(layers.overture, "overture", visibleLayers.overture)}
-        {renderLayer(layers.pegasus, "pegasus", visibleLayers.pegasus)}
-        {renderLayer(layers.positive, "positive", visibleLayers.positive)}
-        {renderLayer(layers.negative, "negative", visibleLayers.negative)}
+        {renderPolygonLayer(layers.overture, "overture", visibleLayers.overture)}
+        {renderPointLayer(layers.pegasus, "pegasus", visibleLayers.pegasus)}
+        {renderPointLayer(layers.positive, "positive", visibleLayers.positive)}
+        {renderPointLayer(layers.negative, "negative", visibleLayers.negative)}
         <FitBounds layers={layers} />
       </MapContainer>
     </div>
