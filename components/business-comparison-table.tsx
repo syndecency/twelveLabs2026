@@ -31,11 +31,11 @@ function getStatusBadge(status: ComparisonRow["status"]) {
     case "match":
       return <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600">Likely Match</Badge>
     case "new":
-      return <Badge variant="outline" className="border-cyan-500/30 bg-cyan-500/10 text-cyan-600">New Store</Badge>
+      return <Badge variant="outline" className="border-cyan-500/30 bg-cyan-500/10 text-cyan-600">Likely New Business</Badge>
     case "closed":
       return <Badge variant="outline" className="border-red-500/30 bg-red-500/10 text-red-600">Store Closed</Badge>
     case "mismatch":
-      return <Badge variant="outline" className="border-amber-500/30 bg-amber-500/10 text-amber-600">Not Captured</Badge>
+      return <Badge variant="outline" className="border-amber-500/30 bg-amber-500/10 text-amber-600">Data Mismatch</Badge>
   }
 }
 

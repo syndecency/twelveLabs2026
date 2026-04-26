@@ -190,7 +190,7 @@ export interface BusinessComparisonRow {
 // Manual comparison data
 export function generateComparisonData(): BusinessComparisonRow[] {
   return [
-    { id: "cmp-001", pegasusName: "City Museum & Washington Avenue Parking St Louis", overtureName: null, address: "", confidence: null, status: "new" },
+    { id: "cmp-001", pegasusName: null, overtureName: "City Museum & Washington Avenue Parking St Louis", address: "", confidence: null, status: "mismatch" },
     { id: "cmp-002", pegasusName: null, overtureName: "Levels Nigerian Cuisine", address: "", confidence: null, status: "closed" },
     { id: "cmp-003", pegasusName: "Buddy", overtureName: "Buddy's Local Grill & Bar", address: "", confidence: null, status: "match" },
     { id: "cmp-004", pegasusName: "window washington", overtureName: "Windows On Washington", address: "", confidence: null, status: "match" },
@@ -199,11 +199,11 @@ export function generateComparisonData(): BusinessComparisonRow[] {
     { id: "cmp-007", pegasusName: "Levin's", overtureName: "Levin's", address: "", confidence: null, status: "match" },
     { id: "cmp-008", pegasusName: "World", overtureName: "iWorld Everything Wireless", address: "", confidence: null, status: "match" },
     { id: "cmp-009", pegasusName: "Washington", overtureName: "Blades On Washington", address: "", confidence: null, status: "match" },
-    { id: "cmp-010", pegasusName: "For Lease", overtureName: "For Lease", address: "", confidence: null, status: "match" },
+    { id: "cmp-010", pegasusName: "For Lease", overtureName: null, address: "", confidence: null, status: "new" },
     { id: "cmp-011", pegasusName: "Escape Room", overtureName: "Escape The Room St Louis", address: "", confidence: null, status: "match" },
     { id: "cmp-012", pegasusName: "Rosies", overtureName: "Rosalita's Mexican Restaurant", address: "", confidence: null, status: "match" },
     { id: "cmp-013", pegasusName: "ReMax", overtureName: null, address: "", confidence: null, status: "new" },
-    { id: "cmp-014", pegasusName: null, overtureName: "Imo's Pizza", address: "", confidence: null, status: "closed" },
+    { id: "cmp-014", pegasusName: null, overtureName: "Imo's Pizza", address: "", confidence: null, status: "mismatch" },
   ]
 }
 
