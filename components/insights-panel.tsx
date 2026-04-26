@@ -8,47 +8,8 @@ interface InsightsPanelProps {
 }
 
 export function InsightsPanel({ summary, className }: InsightsPanelProps) {
-  const getScoreColor = (score: number) => {
-    if (score >= 70) return "text-emerald-600"
-    if (score >= 40) return "text-amber-600"
-    return "text-red-600"
-  }
-
-  const getScoreLabel = (score: number) => {
-    if (score >= 70) return "Strong Growth"
-    if (score >= 40) return "Moderate Activity"
-    return "Declining Market"
-  }
-
   return (
     <div className={cn("space-y-4", className)}>
-      {/* Growth Score */}
-      <div className="rounded-lg border border-border bg-card p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">Market Health Score</p>
-            <p className={`text-3xl font-bold ${getScoreColor(summary.growthScore)}`}>
-              {summary.growthScore}
-            </p>
-            <p className={`text-sm font-medium ${getScoreColor(summary.growthScore)}`}>
-              {getScoreLabel(summary.growthScore)}
-            </p>
-          </div>
-          <div
-            className="flex h-16 w-16 items-center justify-center rounded-full"
-            style={{
-              background: `conic-gradient(${
-                summary.growthScore >= 70 ? "#10b981" : summary.growthScore >= 40 ? "#f59e0b" : "#ef4444"
-              } ${summary.growthScore * 3.6}deg, #e5e7eb 0deg)`,
-            }}
-          >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-card">
-              <span className="text-sm font-semibold">{summary.growthScore}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Key Metrics */}
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-lg border border-border bg-card p-3">
