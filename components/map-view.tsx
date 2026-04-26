@@ -190,10 +190,21 @@ export function MapView({ layers, visibleLayers, className }: MapViewProps) {
     return ""
   }
 
+  // Helper to extract street number from address
+  const getStreetNumber = (address: string): number | null => {
+    const match = address.match(/^(\d+)/)
+    if (match) return parseInt(match[1], 10)
+    return null
+  }
+
   // Check if feature should be excluded
   const shouldExclude = (properties: Record<string, unknown>): boolean => {
     const address = getAddress(properties)
     const name = getBusinessName(properties)
+    
+    // Filter out addresses 1100 and lower
+    const streetNum = getStreetNumber(address)
+    if (streetNum !== null && streetNum <= 1100) return true
     
     // Check excluded addresses (partial match)
     for (const excl of excludedAddresses) {
